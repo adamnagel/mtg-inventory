@@ -6,73 +6,23 @@ import math
 
 pi = 3.14159
 
-
 # A face-detection OpenCV example:
 # https://realpython.com/blog/python/face-detection-in-python-using-a-webcam/
 
 # Square detection:
 # http://stackoverflow.com/questions/10533233/opencv-c-obj-c-advanced-square-detection
 
-def accept_line_pair(line1, line2, minTheta):
-    theta1 = line1[0][1]
-    theta2 = line2[0][1]
+SQUARE_THRESH = 10 * 1000
 
-    if theta1 < minTheta:
-        theta1 += pi
-    if theta2 < minTheta:
-        theta2 += pi
-
-    return abs(theta1 - theta2) > minTheta
-
-
-class Point2f:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-
-def line_to_point_pair(line):
-    points = list()
-
-    r = line[0][0]
-    t = line[0][1]
-    cos_t = math.cos(t)
-    sin_t = math.sin(t)
-    x0 = r * cos_t
-    y0 = r * sin_t
-    alpha = 1000
-
-    points.insert(0, Point2f(x0 + alpha * (-sin_t),
-                             y0 + alpha * cos_t))
-    points.insert(0, Point2f(x0 - alpha * (-sin_t),
-                             y0 - alpha * cos_t))
-
-    return points
-
-
-def compute_intersect(line1, line2):
-    p1 = line_to_point_pair(line1)
-    p2 = line_to_point_pair(line2)
-
-    denom = (p1[0].x - p1[1].x) * (p2[0].y - p2[1].y) - (p1[0].y - p1[1].y) * (p2[0].x - p2[1].x)
-
-    intersect = Point2f(((p1[0].x * p1[1].y - p1[0].y * p1[1].x) * (p2[0].x - p2[1].x) -
-                         (p1[0].x - p1[1].x) * (p2[0].x * p2[1].y - p2[0].y * p2[1].x))
-                        / denom,
-                        ((p1[0].x * p1[1].y - p1[0].y * p1[1].x) * (p2[0].y - p2[1].y) -
-                         (p1[0].y - p1[1].y) * (p2[0].x * p2[1].y - p2[0].y * p2[1].x))
-                        / denom)
-
-    return intersect
-
-
-video_capture = cv2.VideoCapture(0)
+# video_capture = cv2.VideoCapture(0)
 while True:
     # Capture frame-by-frame
     # ret, frame = video_capture.read()
     frame = cv2.imread('cache.png')
     # cv2.imwrite('cache.png', frame)
     # exit(0)
+
+    # smaller = cv2.resize(frame, (500, 500))
 
     # Convert to gray
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -82,39 +32,51 @@ while True:
     gblur = cv2.GaussianBlur(gray, (5, 5), 0)
     retval, thresh = cv2.threshold(gblur, 0, 255,
                                    cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    cv2.imwrite('thresh.png', thresh)
 
-    # Detect edges and lines
-    edges = cv2.Canny(thresh, 66.0, 133.0, 3)
-    lines = cv2.HoughLines(edges, 1, pi / 180, 50, 0, 0)
-    # print ("Detected " + str(len(lines)) + " lines")
+    im2, contours, hier = cv2.findContours(thresh, cv2.RETR_LIST,
+                                           cv2.CHAIN_APPROX_SIMPLE)
 
-    tosave = edges
+    # consider
+    # http://docs.opencv.org/trunk/dd/d49/tutorial_py_contour_features.html
+    for idx, cnt in enumerate(contours):
+        if cv2.contourArea(cnt) > SQUARE_THRESH:
+            hull = cv2.convexHull(cnt)
+            hull = cv2.approxPolyDP(hull,
+                                    0.1 * cv2.arcLength(hull, True), True)
+            if __name__ == '__main__':
+                if len(hull) == 4:
+                    frame_w_contours = np.copy(frame)
+                    cv2.drawContours(frame_w_contours, [hull], 0, (0, 255, 0), 2)
 
-    if lines is None:
-        continue
+                    # Let's cut out just this part of the image
+                    rect = cv2.minAreaRect(cnt)
+                    box_ = cv2.boxPoints(rect)
+                    box = np.int0(box_)
+                    cv2.drawContours(frame_w_contours, [box], 0, (0, 0, 255), 2)
 
-    intersections = list()
-    for line1 in lines:
-        for line2 in lines:
-            if accept_line_pair(line1, line2, pi / 32):
-                intersection = compute_intersect(line1, line2)
-                intersections.insert(0, intersection)
+                    print (box)
+                    print (rect)
+                    # Let's find the rotation angle
+                    # http://felix.abecassis.me/2011/10/opencv-rotation-deskewing/
+                    angle = rect[2]
+                    center = rect[0]
+                    size = rect[1]
 
-    circled = frame
-    for idx, intersection in enumerate(intersections):
-        cv2.circle(circled,
-                   (int(intersection.x), int(intersection.y)),
-                   1, (0, 0, 255), 3)
-        tosave = circled
+                    rot_mat = cv2.getRotationMatrix2D(center, angle, 1)
+                    warp = cv2.warpAffine(frame, rot_mat,
+                                          dsize=(frame.shape[1], frame.shape[0]),
+                                          flags=cv2.INTER_CUBIC)
 
-    # corners = cv2.goodFeaturesToTrack(gray, 25, 0.01, 10)
-    # corners = np.int0(corners)
-    # for i in corners:
-    #     x, y = i.ravel()
-    #     cv2.circle(frame, (x, y), 3, 255, -1)
+                    cv2.imwrite('warp{}.png'.format(idx), warp)
 
-    # write the frame for debugging
-    cv2.imwrite('image.png', tosave)
+                    # Crop
+                    cropped = cv2.getRectSubPix(warp,
+                                                (int(size[0]), int(size[1])),
+                                                (int(center[0]), int(center[1])))
+                    cv2.imwrite('crop{}.png'.format(idx), cropped)
+
+    cv2.imwrite('image.png', frame_w_contours)
     exit(0)
 
 video_capture.release()
