@@ -12,13 +12,15 @@ pi = 3.14159
 # Square detection:
 # http://stackoverflow.com/questions/10533233/opencv-c-obj-c-advanced-square-detection
 
-SQUARE_THRESH = 10 * 1000
+SQUARE_THRESH_MIN = 1000 * 1000
+SQUARE_THRESH_MAX = 2 * 1000 * 1000
 
 # video_capture = cv2.VideoCapture(0)
 while True:
     # Capture frame-by-frame
     # ret, frame = video_capture.read()
-    frame = cv2.imread('cache.png')
+    # frame = cv2.imread('cache.png')
+    frame = cv2.imread('50838297232__462D39E0-B9EB-46ED-BBD1-0D2F26D7E0B6.JPG')
     # cv2.imwrite('cache.png', frame)
     # exit(0)
 
@@ -40,12 +42,15 @@ while True:
     # consider
     # http://docs.opencv.org/trunk/dd/d49/tutorial_py_contour_features.html
     for idx, cnt in enumerate(contours):
-        if cv2.contourArea(cnt) > SQUARE_THRESH:
+        contour_area = cv2.contourArea(cnt)
+        if SQUARE_THRESH_MAX > contour_area > SQUARE_THRESH_MIN:
+
             hull = cv2.convexHull(cnt)
             hull = cv2.approxPolyDP(hull,
                                     0.1 * cv2.arcLength(hull, True), True)
             if __name__ == '__main__':
                 if len(hull) == 4:
+                    print (idx, contour_area)
                     frame_w_contours = np.copy(frame)
                     cv2.drawContours(frame_w_contours, [hull], 0, (0, 255, 0), 2)
 
@@ -75,6 +80,10 @@ while True:
                                                 (int(size[0]), int(size[1])),
                                                 (int(center[0]), int(center[1])))
                     cv2.imwrite('crop{}.png'.format(idx), cropped)
+
+                    final_trans = cv2.transpose(cropped)
+                    final = cv2.flip(final_trans, 0)
+                    cv2.imwrite('final{}.png'.format(idx), final)
 
     cv2.imwrite('image.png', frame_w_contours)
     exit(0)
