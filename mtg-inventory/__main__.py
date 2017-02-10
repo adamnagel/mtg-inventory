@@ -1,8 +1,5 @@
-import cv2
-import sys
 import numpy as np
 import cv2
-import math
 
 pi = 3.14159
 
@@ -25,7 +22,7 @@ def find_contours(frame):
     gblur = cv2.GaussianBlur(gray, (5, 5), 0)
     retval, thresh = cv2.threshold(gblur, 0, 255,
                                    cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    cv2.imwrite('thresh.png', thresh)
+    # cv2.imwrite('thresh.png', thresh)
 
     im2, contours, hier = cv2.findContours(thresh, cv2.RETR_LIST,
                                            cv2.CHAIN_APPROX_SIMPLE)
@@ -57,18 +54,15 @@ while True:
                                     0.1 * cv2.arcLength(hull, True), True)
             if __name__ == '__main__':
                 if len(hull) == 4:
-                    print (idx, contour_area)
-                    frame_w_contours = np.copy(frame)
-                    cv2.drawContours(frame_w_contours, [hull], 0, (0, 255, 0), 2)
+                    # frame_w_contours = np.copy(frame)
+                    # cv2.drawContours(frame_w_contours, [hull], 0, (0, 255, 0), 2)
 
                     # Let's cut out just this part of the image
                     rect = cv2.minAreaRect(cnt)
                     box_ = cv2.boxPoints(rect)
                     box = np.int0(box_)
-                    cv2.drawContours(frame_w_contours, [box], 0, (0, 0, 255), 2)
+                    # cv2.drawContours(frame_w_contours, [box], 0, (0, 0, 255), 2)
 
-                    print (box)
-                    print (rect)
                     # Let's find the rotation angle
                     # http://felix.abecassis.me/2011/10/opencv-rotation-deskewing/
                     angle = rect[2]
@@ -79,21 +73,19 @@ while True:
                     warp = cv2.warpAffine(frame, rot_mat,
                                           dsize=(frame.shape[1], frame.shape[0]),
                                           flags=cv2.INTER_CUBIC)
-
-                    cv2.imwrite('warp{}.png'.format(idx), warp)
+                    # cv2.imwrite('warp{}.png'.format(idx), warp)
 
                     # Crop
                     cropped = cv2.getRectSubPix(warp,
                                                 (int(size[0]), int(size[1])),
                                                 (int(center[0]), int(center[1])))
-                    cv2.imwrite('crop{}.png'.format(idx), cropped)
+                    # cv2.imwrite('crop{}.png'.format(idx), cropped)
 
                     # Rotate to be upright
                     final_trans = cv2.transpose(cropped)
                     final = cv2.flip(final_trans, 0)
                     cv2.imwrite('final{}.png'.format(idx), final)
 
-    cv2.imwrite('image.png', frame_w_contours)
     exit(0)
 
 video_capture.release()
