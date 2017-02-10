@@ -15,17 +15,8 @@ pi = 3.14159
 SQUARE_THRESH_MIN = 1000 * 1000
 SQUARE_THRESH_MAX = 2 * 1000 * 1000
 
-# video_capture = cv2.VideoCapture(0)
-while True:
-    # Capture frame-by-frame
-    # ret, frame = video_capture.read()
-    # frame = cv2.imread('cache.png')
-    frame = cv2.imread('50838297232__462D39E0-B9EB-46ED-BBD1-0D2F26D7E0B6.JPG')
-    # cv2.imwrite('cache.png', frame)
-    # exit(0)
 
-    # smaller = cv2.resize(frame, (500, 500))
-
+def find_contours(frame):
     # Convert to gray
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -38,6 +29,22 @@ while True:
 
     im2, contours, hier = cv2.findContours(thresh, cv2.RETR_LIST,
                                            cv2.CHAIN_APPROX_SIMPLE)
+
+    return contours
+
+
+# video_capture = cv2.VideoCapture(0)
+while True:
+    # Capture frame-by-frame
+    # ret, frame = video_capture.read()
+    # frame = cv2.imread('cache.png')
+    frame = cv2.imread('50838297232__462D39E0-B9EB-46ED-BBD1-0D2F26D7E0B6.JPG')
+    # cv2.imwrite('cache.png', frame)
+    # exit(0)
+
+    # smaller = cv2.resize(frame, (500, 500))
+
+    contours = find_contours(frame)
 
     # consider
     # http://docs.opencv.org/trunk/dd/d49/tutorial_py_contour_features.html
@@ -81,6 +88,7 @@ while True:
                                                 (int(center[0]), int(center[1])))
                     cv2.imwrite('crop{}.png'.format(idx), cropped)
 
+                    # Rotate to be upright
                     final_trans = cv2.transpose(cropped)
                     final = cv2.flip(final_trans, 0)
                     cv2.imwrite('final{}.png'.format(idx), final)
