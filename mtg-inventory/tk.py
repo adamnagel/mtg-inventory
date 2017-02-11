@@ -105,10 +105,13 @@ def do_ocr(img):
     img_height = img.size[1]
     for lwb in line_and_word_boxes:
         relpos = float(lwb.position[0][1]) / float(img_height)
-        print (relpos, lwb.content)
         if lwb.content and relpos < 0.2:
+            print (relpos, lwb.content)
             # print (relpos, img_height, lwb.position[0][1])
             print ("Possible title: ", lwb.content)
+
+            return lwb.content
+
             # print(lwb.position)
             # print("==")
 
@@ -123,6 +126,9 @@ class App:
 
         self.thresh = Label(master)
         self.thresh.pack(side=TOP)
+
+        self.cardname = Message(frame)
+        self.cardname.pack(side=BOTTOM)
 
         self.card = Label(master)
         self.card.pack(side=BOTTOM)
@@ -139,21 +145,23 @@ class App:
         self.show_frame()
 
     def start_cap(self):
-        # width, height = 800, 600
-        self.cap = cv2.VideoCapture(0)
+        # width, height = 1920 / 4, 1080 / 4
+        self.cap = cv2.VideoCapture('testdata/stack.mov')
         # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
     def show_frame(self):
         # Get a capture, keep only the frame
         _, frame = self.cap.read()
+        # fnum = self.cap.get(cv2.CAP_PROP_POS_FRAMES)
+        # self.cap.set(cv2.CAP_PROP_POS_FRAMES, fnum + 1)
 
         # Render as color
         cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
 
         # Convert to PIL Image
         img_ = Image.fromarray(cv2image)
-        img = img_.resize((400, 300))
+        img = img_.resize((400/2, 300/2))
         imgtk = ImageTk.PhotoImage(image=img)
         # cv2.imwrite('close.png', frame)
 
@@ -173,24 +181,26 @@ class App:
         # Find card
         card, frame_with_contours = find_card(frame)
         if card is not None:
-            # print (str(time.time()) +
-            cimg_ = Image.fromarray(card)
+            # print (str(time.time())
+            cimg_ = Image.fromarray(card).resize((300/2, 400/2))
             cimg = cimg_
             cimgtk = ImageTk.PhotoImage(image=cimg)
 
-            do_ocr(cimg_)
+            name = do_ocr(cimg_)
+            if name:
+                self.cardname.config(text=name)
 
             self.card.imgtk = cimgtk
             self.card.configure(image=cimgtk)
 
-            cont_img = Image.fromarray(frame_with_contours).resize((400, 300))
+            cont_img = Image.fromarray(frame_with_contours).resize((400/2, 300/2))
             cont_imgtk = ImageTk.PhotoImage(image=cont_img)
 
             self.contours.imgtk = cont_imgtk
             self.contours.configure(image=cont_imgtk)
 
         # Call this function again after 100ms
-        self.raw_img.after(100, self.show_frame)
+        self.raw_img.after(30, self.show_frame)
 
 
 root = Tk()
