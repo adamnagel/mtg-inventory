@@ -2,6 +2,11 @@
 Scryfall Magic card database with API:
 https://scryfall.com/
 
+## ImageMagick
+Appears to support perceptual hashing
+
+https://stackoverflow.com/questions/49211893/computing-distance-of-perceptual-hashes
+
 ## ImageHash
 https://github.com/JohannesBuchner/imagehash
 
