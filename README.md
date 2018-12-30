@@ -17,3 +17,6 @@ This had some decent results
 * FOD ideal vs forest ideal: 375 hamming
 
 The correct match had the best hamming.
+
+Some clues for building on OSX:
+https://stackoverflow.com/questions/41667861/brew-formula-for-phash#comment70699875_41667861
