@@ -2,6 +2,11 @@
 Scryfall Magic card database with API:
 https://scryfall.com/
 
+## Sum Squared
+If your perceptual hash is 42 floating-point digits, you need to use Sum Squared to compare.
+
+http://www.fmwconcepts.com/imagemagick/phashcompare/index.php
+
 ## ImageMagick
 Appears to support perceptual hashing
 
