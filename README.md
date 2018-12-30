@@ -2,6 +2,9 @@
 Scryfall Magic card database with API:
 https://scryfall.com/
 
+## ImageHash
+https://github.com/JohannesBuchner/imagehash
+
 ## Image-Match
 https://github.com/ascribe/image-match
 
