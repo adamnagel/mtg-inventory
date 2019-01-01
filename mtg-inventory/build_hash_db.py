@@ -20,14 +20,9 @@ rec_ph_pair = re.compile(re_ph_pair)
 re_ph_end = '\sRendering intent: Perceptual'
 rec_ph_end = re.compile(re_ph_end)
 
-path_image_db_root = join(dirname(__file__), 'scryfall-data', 'img')
-path_hash_db = join(dirname(__file__), 'scryfall-data', 'hash_db.json')
-
-if exists(path_hash_db):
-    with open(path_hash_db) as f:
-        hash_db = json.load(f)
-else:
-    hash_db = dict()
+path_db_root = 'C:\\SSDshare\\scryfall-data'
+path_image_db_root = join(path_db_root, 'img')
+path_hash_db = join(path_db_root, 'hash_db.json')
 
 
 def HashImg(path_img):
@@ -40,13 +35,13 @@ def HashImg(path_img):
         '-alpha',
         'off',
         path_img
-    ])
+    ], text=True)
 
     data = {}
     active = False
     channel_dict = {}
 
-    for line in result.split('\n'):
+    for line in result:
         if rec_phash_start.match(line):
             active = True
             continue
@@ -82,54 +77,61 @@ def HashImgWrap(item):
     rtn['data'] = HashImg(item['_abspath'])
     return rtn
 
+if __name__ == '__main__':  
 
-# What do we want to do?
-# We want to open the existing Hash DB and index the IDs.
-# Then we want to skip any images we've already indexed.
+    if exists(path_hash_db):
+        with open(path_hash_db, encoding="utf8") as f:
+            hash_db = json.load(f)
+    else:
+        hash_db = dict()
 
-with open(path_hash_db) as f:
-    hash_db = json.load(f)
+    # What do we want to do?
+    # We want to open the existing Hash DB and index the IDs.
+    # Then we want to skip any images we've already indexed.
 
-ids_completed = []
-for i in hash_db:
-    ids_completed.append(i['_id'])
+    with open(path_hash_db, encoding="utf8") as f:
+        hash_db = json.load(f)
 
-max = 100000000
-files_db = []
-skipped = 0
+    ids_completed = []
+    for i in hash_db:
+        ids_completed.append(i['_id'])
 
-for root, dirs, files in walk(path_image_db_root, topdown=False):
-    if max == 0:
-        break
+    max = 10000000
+    files_db = []
+    skipped = 0
 
-    for name in files:
-        id = name.replace('.jpg', '')
-        if id in ids_completed:
-            skipped += 1
-            continue
-
+    for root, dirs, files in walk(path_image_db_root, topdown=False):
         if max == 0:
             break
 
-        max -= 1
+        for name in files:
+            id = name.replace('.jpg', '')
+            if id in ids_completed:
+                skipped += 1
+                continue
 
-        abspath = join(root, name)
-        relpath = abspath.replace(path_image_db_root, '')
-        files_db.append({
-            '_id': id,
-            '_file': relpath,
-            '_abspath': abspath
-        })
+            if max == 0:
+                break
 
-print ('Skipped {} already indexed'.format(skipped))
-print ('Indexing {} card images'.format(len(files_db)))
+            max -= 1
 
-p = Pool()
-r = p.map(HashImgWrap, files_db)
+            abspath = join(root, name)
+            relpath = abspath.replace(path_image_db_root, '')
+            files_db.append({
+                '_id': id,
+                '_file': relpath,
+                '_abspath': abspath
+            })
 
-combined_db = []
-combined_db.extend(hash_db)
-combined_db.extend(r)
+    print ('Skipped {} already indexed'.format(skipped))
+    print ('Indexing {} card images'.format(len(files_db)))
 
-with open(path_hash_db, 'w') as f:
-    json.dump(combined_db, f, indent=2, sort_keys=True)
+    with Pool() as p:
+        r = p.map(HashImgWrap, files_db)
+
+    combined_db = []
+    combined_db.extend(hash_db)
+    combined_db.extend(r)
+
+    with open(path_hash_db, 'w', encoding="utf8") as f:
+        json.dump(combined_db, f, indent=2, sort_keys=True)

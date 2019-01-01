@@ -4,17 +4,18 @@ from os import makedirs
 from time import sleep
 import requests
 
-path_db_root = join(dirname(__file__), 'scryfall-data')
+# path_db_root = join(dirname(__file__), 'scryfall-data')
+path_db_root = 'C:\\SSDshare\\scryfall-data'
 path_db_json = join(path_db_root, 'scryfall-default-cards.json')
 path_db_img = join(path_db_root, 'img')
 
-with open('scryfall-data/scryfall-default-cards.json') as f:
+with open(path_db_json, encoding="utf8") as f:
     db = json.load(f)
 print ('DB loaded')
 print ('{} records'.format(len(db)))
 
 index = {}
-limit = 3000
+limit = 30000
 
 failed = list()
 
@@ -46,5 +47,5 @@ for card in db:
 
 print ('done')
 
-with open('failed.json', 'w') as f:
+with open('failed.json', 'w', encoding="utf8") as f:
     json.dump(failed, f, indent=2)
