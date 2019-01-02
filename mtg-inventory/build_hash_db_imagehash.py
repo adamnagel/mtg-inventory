@@ -4,13 +4,14 @@ from os.path import dirname, join, exists
 import json
 from subprocess import check_output
 import re
-from os import walk
+from os import walk, stat
 from multiprocessing import Pool
 from copy import copy
 import imagehash as ih
 import cv2
 from PIL import Image
 import pickle
+import numpy as np
 
 re_phash_start = '\s*Channel perceptual hash: sRGB'
 rec_phash_start = re.compile(re_phash_start)
@@ -24,17 +25,25 @@ rec_ph_pair = re.compile(re_ph_pair)
 re_ph_end = '\sRendering intent: Perceptual'
 rec_ph_end = re.compile(re_ph_end)
 
-# path_db_root = 'C:\\SSDshare\\scryfall-data'
+path_db_root = 'C:\\SSDshare\\scryfall-data'
 # path_db_root = '/Volumes/SSDshare/scryfall-data/'
-path_db_root = '/Users/adam/repos/mtg-inventory/mtg-inventory/scryfall-data'
+# path_db_root = '/Users/adam/repos/mtg-inventory/mtg-inventory/scryfall-data'
 path_image_db_root = join(path_db_root, 'img')
 path_hash_db = join(path_db_root, 'hash_db.pickle')
 
 
 def HashImg(path_img):
-    card_img = cv2.imread(path_img)
+    stream = open(path_img, 'rb')
+    bytes = bytearray(stream.read())
+    numpyarray = np.asarray(bytes, dtype=np.uint8)
+    card_img = cv2.imdecode(numpyarray, cv2.IMREAD_UNCHANGED)
 
-    img_card = Image.fromarray(card_img)
+    # card_img = cv2.imread(path_img)
+
+    try:
+        img_card = Image.fromarray(card_img)
+    except:
+        print ('failed on {}'.format(path_img))
 
     card_hash = ih.phash(img_card, hash_size=32)
     data = card_hash
@@ -60,7 +69,7 @@ if __name__ == '__main__':
 
     ids_completed = hash_db.keys()
 
-    max = 1000
+    max = 100000
     files_db = []
     skipped = 0
 
@@ -81,6 +90,12 @@ if __name__ == '__main__':
 
             abspath = join(root, name)
             relpath = abspath.replace(path_image_db_root, '')
+
+            # If less than 50k, ignore
+            if stat(abspath).st_size < 20*1000:
+                print ('ignoring {} due to size'.format(relpath))
+                continue
+
             files_db.append({
                 '_id': id,
                 '_file': relpath,
