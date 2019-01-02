@@ -2,10 +2,11 @@ import json
 import numpy as np
 from os.path import join, dirname
 from time import time
-from build_hash_db_imagehash import HashImg
+from BuildHashDb import HashImg
 import pickle
 
-path_db_root = '/Volumes/SSDshare/scryfall-data/'
+# path_db_root = '/Volumes/SSDshare/scryfall-data/'
+path_db_root = 'C:\\SSDshare\\scryfall-data'
 path_image_db_root = join(path_db_root, 'img')
 path_hash_db = join(path_db_root, 'hash_db.pickle')
 

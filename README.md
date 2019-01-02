@@ -2,6 +2,10 @@
 Scryfall Magic card database with API:
 https://scryfall.com/
 
+## Setup
+create a Python >=3.7.2 environment
+install `requirements.txt`
+
 ## Similar Projects
 This similar project is pretty impressive
 https://github.com/hj3yoo/mtg_card_detector
