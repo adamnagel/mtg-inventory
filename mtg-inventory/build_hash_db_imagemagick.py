@@ -20,7 +20,8 @@ rec_ph_pair = re.compile(re_ph_pair)
 re_ph_end = '\sRendering intent: Perceptual'
 rec_ph_end = re.compile(re_ph_end)
 
-path_db_root = 'C:\\SSDshare\\scryfall-data'
+# path_db_root = 'C:\\SSDshare\\scryfall-data'
+path_db_root = '/Volumes/SSDshare/scryfall-data/'
 path_image_db_root = join(path_db_root, 'img')
 path_hash_db = join(path_db_root, 'hash_db.json')
 
@@ -41,7 +42,7 @@ def HashImg(path_img):
     active = False
     channel_dict = {}
 
-    for line in result:
+    for line in result.split('\n'):
         if rec_phash_start.match(line):
             active = True
             continue
@@ -77,8 +78,8 @@ def HashImgWrap(item):
     rtn['data'] = HashImg(item['_abspath'])
     return rtn
 
-if __name__ == '__main__':  
 
+if __name__ == '__main__':
     if exists(path_hash_db):
         with open(path_hash_db, encoding="utf8") as f:
             hash_db = json.load(f)
@@ -89,14 +90,11 @@ if __name__ == '__main__':
     # We want to open the existing Hash DB and index the IDs.
     # Then we want to skip any images we've already indexed.
 
-    with open(path_hash_db, encoding="utf8") as f:
-        hash_db = json.load(f)
-
     ids_completed = []
     for i in hash_db:
         ids_completed.append(i['_id'])
 
-    max = 10000000
+    max = 1
     files_db = []
     skipped = 0
 
@@ -123,8 +121,8 @@ if __name__ == '__main__':
                 '_abspath': abspath
             })
 
-    print ('Skipped {} already indexed'.format(skipped))
-    print ('Indexing {} card images'.format(len(files_db)))
+    print('Skipped {} already indexed'.format(skipped))
+    print('Indexing {} card images'.format(len(files_db)))
 
     with Pool() as p:
         r = p.map(HashImgWrap, files_db)
