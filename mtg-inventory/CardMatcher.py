@@ -7,7 +7,6 @@ import pickle
 
 # path_db_root = '/Volumes/SSDshare/scryfall-data/'
 path_db_root = 'C:\\SSDshare\\scryfall-data'
-path_image_db_root = join(path_db_root, 'img')
 path_hash_db = join(path_db_root, 'hash_db.pickle')
 
 
@@ -20,7 +19,7 @@ path_hash_db = join(path_db_root, 'hash_db.pickle')
 # The other is all the coefficients, as a 24-element vector.
 
 class CardMatcher(object):
-    def __init__(self, path_hash_db):
+    def __init__(self, path_hash_db=path_hash_db):
         start = time()
 
         with open(path_hash_db, 'rb') as f:
@@ -47,22 +46,8 @@ class CardMatcher(object):
                 best_id = k
 
         duration = time() - start
-        print('{:.4g}ms'.format(duration))
+        # print('{:.4g}ms'.format(duration))
+        #
+        # print(self.hash_db[best_id]['_file'])
 
-        print(self.hash_db[best_id]['_file'])
-
-
-cm = CardMatcher(path_hash_db)
-
-path_testimage = join(dirname(__file__), 'testdata', 'feast_of_dreams.jpg')
-cm.MatchCardImg(path_testimage)
-path_testimage = join(dirname(__file__), 'testdata', 'feast_of_dreams copy.jpg')
-cm.MatchCardImg(path_testimage)
-path_testimage = join(dirname(__file__), 'testdata', 'feast_of_dreams_poor.jpg')
-cm.MatchCardImg(path_testimage)
-path_testimage = join(dirname(__file__), 'testdata', 'jou-69-feast-of-dreams.jpg')
-cm.MatchCardImg(path_testimage)
-path_testimage = join(dirname(__file__), 'testdata', 'feast_of_dreams crop.jpg')
-cm.MatchCardImg(path_testimage)
-path_testimage = join(dirname(__file__), 'testdata', 'jou-69-feast-of-dreams-480.jpg')
-cm.MatchCardImg(path_testimage)
+        return best_id
