@@ -2,11 +2,12 @@ import json
 import numpy as np
 from os.path import join, dirname
 from time import time
-from build_hash_db import HashImg
+from build_hash_db_imagehash import HashImg
+import pickle
 
 path_db_root = '/Volumes/SSDshare/scryfall-data/'
 path_image_db_root = join(path_db_root, 'img')
-path_hash_db = join(path_db_root, 'hash_db.json')
+path_hash_db = join(path_db_root, 'hash_db.pickle')
 
 
 # What do we need to do?
@@ -19,115 +20,35 @@ path_hash_db = join(path_db_root, 'hash_db.json')
 
 class CardMatcher(object):
     def __init__(self, path_hash_db):
-
         start = time()
-        with open(path_hash_db, encoding="utf8") as f:
-            hash_db = json.load(f)
-        duration = time() - start
-        print('loaded db in {:.4g}ms'.format(duration * 1000))
-        # self.hash_db = hash_db
 
-        # Parse Database
-        l_coefficients = []
-        l_ids = []
-        set_lengths = set()
-        d_ids = dict()
-
-        start = time()
-        for entry in hash_db:
-            if len(entry['data'].keys()) != 3:
-                print('wrong coeffs for {}'.format(entry['_file']))
-                continue
-
-            coeffs = self.DataDictToVector(entry['data'])
-
-            len_coeffs = len(coeffs)
-            # if len_coeffs != 35:
-            #     print('wrong length ({}) for {}'.format(len_coeffs, entry['_file']))
-            #     continue
-
-            l_ids.append(entry['_id'])
-            l_coefficients.append(coeffs)
-            set_lengths.add(len_coeffs)
-
-            d_ids[entry['_id']] = {
-                '_file': entry['_file']
-            }
-
-        print('lengths: {}'.format(set_lengths))
-        np_coefficients = np.array(l_coefficients)
-        print('shape np_coefficients: {}'.format(np_coefficients.shape))
+        with open(path_hash_db, 'rb') as f:
+            hash_db = pickle.load(f)
 
         duration = time() - start
-        print('transformed db in {:.4g}ms'.format(duration * 1000))
-
-        self.np_coefficients = np_coefficients
-        self.d_ids = d_ids
-        self.l_ids = l_ids
-
-    @staticmethod
-    def DataDictToVector(d):
-        coeffs = []
-
-        # Channel 0: Red, Hue
-        # Channel 1: Green, Chroma
-        # Channel 2: Blue, Luma
-
-        # style = 'Luma'
-        style = 'NoHue'
-
-        if style is 'NoHue':
-            for k, v in d['Channel 0'].items():
-                coeffs.append(v[0])
-            for k, v in d['Channel 1'].items():
-                coeffs.extend(v)
-            for k, v in d['Channel 2'].items():
-                coeffs.extend(v)
-
-        elif style is 'Luma':
-            for k, v in d['Channel 2'].items():
-                coeffs.append(v[1])
-
-        elif style is 'Full':
-            for k in d.keys():
-                for k2, v2 in d[k].items():
-                    coeffs.extend(v2)
-
-        return coeffs
-
-    def MatchCardCoeffs(self, np_card_coeffs):
-        # print('start comparison')
-
-        start = time()
-        np_sums = np.sum((np_card_coeffs - self.np_coefficients) ** 2, axis=1)
-        end = time()
-
-        # print(np_sums)
-        # print('took {:.4g}ms'.format((end - start) * 1000))
-
-        idx = np.argmin(np_sums)
-        print('best match: {} for {}'.format(np_sums[idx], self.d_ids[self.l_ids[idx]]))
-        # print(np_coefficients[idx])
-        # print(np_testimage)
-
-        # What's the match with Feast of Dreams?
-        ids_fod = set()
-        for k, v in self.d_ids.items():
-            if 'Feast' in v['_file'] and 'Dreams' in v['_file']:
-                ids_fod.add(k)
-        # print(ids_fod)
-
-        for id_fod in ids_fod:
-            idx_fod = self.l_ids.index(id_fod)
-            np_fod_coeffs = self.np_coefficients[idx_fod]
-
-            print(np.sum((np_card_coeffs - np_fod_coeffs) ** 2))
+        print('loaded db in {:.4g}s'.format(duration))
+        self.hash_db = hash_db
 
     def MatchCardImg(self, path_card):
-        hash_testimage = self.DataDictToVector(HashImg(path_card))
-        np_testimage = np.array(hash_testimage)
+        hash_card = HashImg(path_card)
 
-        self.MatchCardCoeffs(np_testimage)
+        start = time()
+        best_val = None
+        best_id = None
+        for k, v in self.hash_db.items():
+            match = hash_card - v['data']
+
+            if not best_val:
+                best_val = match
+                best_id = k
+            elif match < best_val:
+                best_val = match
+                best_id = k
+
+        duration = time() - start
+        print('{:.4g}ms'.format(duration))
+
+        print(self.hash_db[best_id]['_file'])
 
 
 cm = CardMatcher(path_hash_db)
