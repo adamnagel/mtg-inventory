@@ -12,20 +12,20 @@ class TestCardMatcher(unittest.TestCase):
 
     def test_FeastOfDreams_Ideal(self):
         path_testimage = join(dirname(__file__), 'testdata', 'jou-69-feast-of-dreams.jpg')
-        id = self.cm.MatchCardImg(path_testimage)
+        id, _ = self.cm.MatchCardFile(path_testimage)
         self.assertEqual(id, 'de07e21e-c12a-47a6-ad2c-ef6fed343407')
 
     def test_FeastOfDreams_Crop(self):
         path_testimage = join(dirname(__file__), 'testdata', 'feast_of_dreams crop.jpg')
-        id = self.cm.MatchCardImg(path_testimage)
+        id, _ = self.cm.MatchCardFile(path_testimage)
         self.assertEqual(id, 'de07e21e-c12a-47a6-ad2c-ef6fed343407')
 
     def test_FeastOfDreams_Raw(self):
         path_testimage = join(dirname(__file__), 'testdata', 'feast_of_dreams.jpg')
-        id = self.cm.MatchCardImg(path_testimage)
+        id, _ = self.cm.MatchCardFile(path_testimage)
         self.assertEqual(id, 'de07e21e-c12a-47a6-ad2c-ef6fed343407')
 
     def test_FeastOfDreams_Poor(self):
         path_testimage = join(dirname(__file__), 'testdata', 'feast_of_dreams_poor.jpg')
-        id = self.cm.MatchCardImg(path_testimage)
+        id, _ = self.cm.MatchCardFile(path_testimage)
         self.assertEqual(id, 'de07e21e-c12a-47a6-ad2c-ef6fed343407')

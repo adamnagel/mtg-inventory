@@ -2,7 +2,7 @@ import json
 import numpy as np
 from os.path import join, dirname
 from time import time
-from BuildHashDb import HashImg
+from BuildHashDb import HashImgFile, HashImg
 import pickle
 
 # path_db_root = '/Volumes/SSDshare/scryfall-data/'
@@ -29,8 +29,8 @@ class CardMatcher(object):
         print('loaded db in {:.4g}s'.format(duration))
         self.hash_db = hash_db
 
-    def MatchCardImg(self, path_card):
-        hash_card = HashImg(path_card)
+    def MatchCardFile(self, path_card):
+        hash_card = HashImgFile(path_card)
 
         start = time()
         best_val = None
@@ -45,9 +45,32 @@ class CardMatcher(object):
                 best_val = match
                 best_id = k
 
-        duration = time() - start
+        # duration = time() - start
         # print('{:.4g}ms'.format(duration))
         #
         # print(self.hash_db[best_id]['_file'])
 
-        return best_id
+        return best_id, best_val
+
+    def MatchCardImg(self, img_card):
+        hash_card = HashImg(img_card)
+
+        start = time()
+        best_val = None
+        best_id = None
+        for k, v in self.hash_db.items():
+            match = hash_card - v['data']
+
+            if not best_val:
+                best_val = match
+                best_id = k
+            elif match < best_val:
+                best_val = match
+                best_id = k
+
+        # duration = time() - start
+        # print('{:.4g}ms'.format(duration))
+        #
+        # print(self.hash_db[best_id]['_file'])
+
+        return best_id, best_val

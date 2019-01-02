@@ -16,7 +16,7 @@ path_image_db_root = join(path_db_root, 'img')
 path_hash_db = join(path_db_root, 'hash_db.pickle')
 
 
-def HashImg(path_img):
+def HashImgFile(path_img):
     # This roundabout method is needed to handle Unicode paths.
     stream = open(path_img, 'rb')
     bytes = bytearray(stream.read())
@@ -26,6 +26,12 @@ def HashImg(path_img):
     # This simple method doesn't support Unicode paths
     # card_img = imread(path_img)
 
+    hash_card = HashImg(card_img)
+
+    return hash_card
+
+
+def HashImg(card_img):
     img_card = Image.fromarray(card_img)
     hash_card = phash(img_card, hash_size=32)
 
@@ -37,7 +43,7 @@ def HashImgWrap(item):
     path_img = item['_abspath']
 
     try:
-        hash_card = HashImg(path_img)
+        hash_card = HashImgFile(path_img)
         rtn['data'] = hash_card
 
     except:
