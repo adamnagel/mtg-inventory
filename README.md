@@ -2,6 +2,10 @@
 Scryfall Magic card database with API:
 https://scryfall.com/
 
+## Similar Project
+This similar project is pretty impressive
+https://github.com/hj3yoo/mtg_card_detector
+
 ## Sum Squared
 If your perceptual hash is 42 floating-point digits, you need to use Sum Squared to compare.
 
