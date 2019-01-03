@@ -123,11 +123,9 @@ def find_card(img, thresh_c=5, kernel_size=(3, 3), size_thresh=20000):
         peri = cv2.arcLength(cnt, True)
         approx = cv2.approxPolyDP(cnt, 0.04 * peri, True)
 
-        if size >= size_thresh and len(approx) != 4:
-            print(len(approx))
-
         if size >= size_thresh and len(approx) == 4:
             cnts_rect.append(approx)
+            print(size)
         else:
             if i_child != -1:
                 stack.append((i_child, hier[0][i_child]))
@@ -135,7 +133,7 @@ def find_card(img, thresh_c=5, kernel_size=(3, 3), size_thresh=20000):
     return cnts_rect
 
 
-def detect_frame(img, card_pool=None, hash_size=32, size_thresh=30000, out_path=None, display=True, debug=False):
+def detect_frame(img, card_pool=None, hash_size=32, size_thresh=70000, out_path=None, display=True, debug=False):
     img_result = img.copy()
     det_cards = []
 
@@ -159,10 +157,6 @@ def detect_frame(img, card_pool=None, hash_size=32, size_thresh=30000, out_path=
     cv2.imshow('found', img_result)
 
 
-# cap = cv2.VideoCapture(1)
-cap = cv2.VideoCapture('/Users/adam/repos/mtg-inventory/mtg-inventory/testdata/garage_video2.mov')
-if not cap.isOpened():
-    cap.open()
 
 path_db_root = join(dirname(__file__), 'scryfall-data')
 path_hash_db = join(path_db_root, 'hash_db.pickle')
@@ -170,6 +164,11 @@ path_card_db = join(path_db_root, 'scryfall-default-cards.pickle')
 
 cm = CardMatcher(path_hash_db)
 cl = CardLookup(path_card_db)
+
+cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture('/Users/adam/repos/mtg-inventory/mtg-inventory/testdata/garage_video2.mov')
+if not cap.isOpened():
+    cap.open()
 
 while True:
     ret, frame = cap.read()
