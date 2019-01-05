@@ -5,8 +5,10 @@ from time import time
 from BuildHashDb import HashImgFile, HashImg
 import pickle
 
-path_db_root = '/Volumes/SSDshare/scryfall-data/'
-# path_db_root = 'C:\\SSDshare\\scryfall-data'
+with open('config.json') as f:
+    config = json.load(f)
+path_db_root = config['path_db_root']
+
 path_hash_db = join(path_db_root, 'hash_db.pickle')
 
 

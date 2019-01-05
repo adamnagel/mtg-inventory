@@ -7,11 +7,13 @@ import numpy as np
 import pickle
 from copy import copy
 from os import walk, stat
-from os.path import join, exists
+from os.path import join, exists, dirname
+import json
 
-path_db_root = 'C:\\SSDshare\\scryfall-data'
-# path_db_root = '/Volumes/SSDshare/scryfall-data/'
-# path_db_root = '/Users/adam/repos/mtg-inventory/mtg-inventory/scryfall-data'
+with open(join(dirname(__file__), 'config.json')) as f:
+    config = json.load(f)
+path_db_root = config['path_db_root']
+
 path_image_db_root = join(path_db_root, 'img')
 path_hash_db = join(path_db_root, 'hash_db.pickle')
 
