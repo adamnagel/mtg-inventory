@@ -1,8 +1,10 @@
 import pickle
-from os.path import join, exists
+from os.path import join, exists, dirname
 import json
 
-path_db_root = 'C:\\SSDshare\\scryfall-data'
+# path_db_root = 'C:\\SSDshare\\scryfall-data'
+# path_db_root = '/Volumes/SSDshare/scryfall-data/'
+path_db_root = join(dirname(__file__), 'scryfall-data')
 path_card_db = join(path_db_root, 'scryfall-default-cards.pickle')
 path_card_db_json = join(path_db_root, 'scryfall-default-cards.json')
 

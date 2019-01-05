@@ -5,8 +5,8 @@ from time import time
 from BuildHashDb import HashImgFile, HashImg
 import pickle
 
-# path_db_root = '/Volumes/SSDshare/scryfall-data/'
-path_db_root = 'C:\\SSDshare\\scryfall-data'
+path_db_root = '/Volumes/SSDshare/scryfall-data/'
+# path_db_root = 'C:\\SSDshare\\scryfall-data'
 path_hash_db = join(path_db_root, 'hash_db.pickle')
 
 
@@ -32,7 +32,6 @@ class CardMatcher(object):
     def MatchCardFile(self, path_card):
         hash_card = HashImgFile(path_card)
 
-        start = time()
         best_val = None
         best_id = None
         for k, v in self.hash_db.items():
@@ -45,32 +44,61 @@ class CardMatcher(object):
                 best_val = match
                 best_id = k
 
-        # duration = time() - start
-        # print('{:.4g}ms'.format(duration))
-        #
-        # print(self.hash_db[best_id]['_file'])
-
         return best_id, best_val
 
-    def MatchCardImg(self, img_card):
+    def MatchCardImg(self, img_card, matches=1):
         hash_card = HashImg(img_card)
 
-        start = time()
-        best_val = None
-        best_id = None
+        # This is a set of tuples, with (id, quality)
+        best_matches = MatchSet(max_length=matches)
+
+        # best_val = None
+        # best_id = None
         for k, v in self.hash_db.items():
             match = hash_card - v['data']
 
-            if not best_val:
-                best_val = match
-                best_id = k
-            elif match < best_val:
-                best_val = match
-                best_id = k
+            best_matches.tryAdd(k, match, v['_file'])
 
-        # duration = time() - start
-        # print('{:.4g}ms'.format(duration))
-        #
-        # print(self.hash_db[best_id]['_file'])
+        bm = best_matches.getSet()
 
-        return best_id, best_val
+        if matches == 1:
+            bm0 = bm[0]
+            return bm0[0], bm0[1]
+
+        return bm
+
+
+class MatchSet:
+    def __init__(self, max_length=10):
+        self.data = list()
+        self.max_length = max_length
+        self.length = 0
+        self.worst_quality = 1e12
+
+    def tryAdd(self, id, quality, file):
+        # If quality isn't better, we don't care.
+        if quality > self.worst_quality:
+            return
+
+        if self.length == 0:
+            self.data = [(id, quality, file)]
+            self.length = 1
+            return
+
+        # In this case, we need to insert into the right location.
+        target_idx = -1
+        for idx, match in enumerate(self.data):
+            if quality < match[1]:
+                target_idx = idx
+                break
+
+        self.data.insert(target_idx, (id, quality, file))
+
+        # Remove final value is we're over length
+        if len(self.data) > self.max_length:
+            self.data.pop(-1)
+
+        self.worst_quality = self.data[-1][1]
+
+    def getSet(self):
+        return self.data

@@ -125,7 +125,7 @@ def find_card(img, thresh_c=5, kernel_size=(3, 3), size_thresh=20000):
 
         if size >= size_thresh and len(approx) == 4:
             cnts_rect.append(approx)
-            print(size)
+            # print(size)
         else:
             if i_child != -1:
                 stack.append((i_child, hier[0][i_child]))
@@ -133,53 +133,17 @@ def find_card(img, thresh_c=5, kernel_size=(3, 3), size_thresh=20000):
     return cnts_rect
 
 
-def detect_frame(img, card_pool=None, hash_size=32, size_thresh=70000, out_path=None, display=True, debug=False):
-    img_result = img.copy()
+def detect_frame(img, card_pool=None, hash_size=32, size_thresh=16000, out_path=None, display=True, debug=False):
     det_cards = []
 
     # Detect contours of cards in the image
-    cnts = find_card(img_result, size_thresh=size_thresh)
+    cnts = find_card(img, size_thresh=size_thresh)
     for i in range(len(cnts)):
         cnt = cnts[i]
 
         # For the region of the image covered by the contour, transform them into a rectangular image
         pts = np.float32([p[0] for p in cnt])
         img_warp = four_point_transform(img, pts)
+        det_cards.append((img_warp, cnt))
 
-        # Okay, who is it?
-        card_id, quality = cm.MatchCardImg(img_warp)
-        data = cl.lookup(card_id)
-
-        cv2.drawContours(img_result, [cnt], -1, (0, 255, 0), 2)
-        cv2.putText(img_result, data['name'], (min(pts[0][0], pts[1][0]), min(pts[0][1], pts[1][1])),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-
-    cv2.imshow('found', img_result)
-
-
-
-path_db_root = join(dirname(__file__), 'scryfall-data')
-path_hash_db = join(path_db_root, 'hash_db.pickle')
-path_card_db = join(path_db_root, 'scryfall-default-cards.pickle')
-
-cm = CardMatcher(path_hash_db)
-cl = CardLookup(path_card_db)
-
-cap = cv2.VideoCapture(0)
-# cap = cv2.VideoCapture('/Users/adam/repos/mtg-inventory/mtg-inventory/testdata/garage_video2.mov')
-if not cap.isOpened():
-    cap.open()
-
-while True:
-    ret, frame = cap.read()
-
-    # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # cv2.imshow('frame', frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-    detect_frame(frame)
-
-cap.release
-cv2.destroyAllWindows()
+    return det_cards

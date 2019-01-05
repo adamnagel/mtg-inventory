@@ -82,15 +82,16 @@ def find_card(frame):
         contour_proportion = contour_area / frame_area
 
         # if SQUARE_THRESH_MAX > contour_area > SQUARE_THRESH_MIN:
-        if 0.01 < contour_proportion < 0.5:
+        if 0.01 < contour_proportion < 0.75:
             print(frame_area, contour_area, contour_proportion)
 
             hull = cv2.convexHull(cnt)
             hull = cv2.approxPolyDP(hull, 0.1 * cv2.arcLength(hull, True), True)
             if len(hull) == 4:
-                # frame_w_contours = np.copy(frame)
-                # cv2.drawContours(frame_w_contours, [hull], 0, (0, 255, 0), 2)
+                frame_w_contours = np.copy(frame)
+                cv2.drawContours(frame_w_contours, [hull], 0, (0, 255, 0), 2)
                 # cv2.imwrite('contour{}.png'.format(idx), frame_w_contours)
+                cv2.imshow('contour', frame_w_contours)
 
                 # Let's cut out just this part of the image
                 rect = cv2.minAreaRect(cnt)
@@ -140,9 +141,9 @@ class HandleFrame(object):
         card = find_card(frame)
 
         best_id = None
-        if card is not None:
-            best_quality = None
+        best_quality = None
 
+        if card is not None:
             for orientation in permute(card):
                 filename = 'card.png'
                 cv2.imwrite(filename, orientation)

@@ -16,7 +16,7 @@ path_image_db_root = join(path_db_root, 'img')
 path_hash_db = join(path_db_root, 'hash_db.pickle')
 
 
-def HashImgFile(path_img):
+def LoadImg(path_img):
     # This roundabout method is needed to handle Unicode paths.
     stream = open(path_img, 'rb')
     bytes = bytearray(stream.read())
@@ -26,6 +26,11 @@ def HashImgFile(path_img):
     # This simple method doesn't support Unicode paths
     # card_img = imread(path_img)
 
+    return card_img
+
+
+def HashImgFile(path_img):
+    card_img = LoadImg(path_img)
     hash_card = HashImg(card_img)
 
     return hash_card

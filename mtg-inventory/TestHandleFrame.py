@@ -3,14 +3,16 @@ from os.path import join, dirname
 from HandleFrame import HandleFrame
 from CardLookup import CardLookup
 
-path_db_root = 'C:\\SSDshare\\scryfall-data'
+# path_db_root = 'C:\\SSDshare\\scryfall-data'
+path_db_root = '/Volumes/SSDshare/scryfall-data/'
 path_hash_db = join(path_db_root, 'hash_db.pickle')
+path_card_db = join(path_db_root, 'scryfall-default-cards.pickle')
 path_raw_captures = join(dirname(__file__), 'testdata', 'raw_captures')
 
 
 class TestHandleFrameMatcher(unittest.TestCase):
     def setUp(self):
-        self.cl = CardLookup()
+        self.cl = CardLookup(path_card_db)
         self.hf = HandleFrame()
 
     def test_StabWound(self):
