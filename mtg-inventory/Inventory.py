@@ -146,7 +146,7 @@ while True:
             state = SCAN
 
 if len(inventory) > 0:
-    with open('inventory_{}'.format(time()), 'w') as inv:
+    with open('inventory_{}.json'.format(time()), 'w') as inv:
         json.dump(inventory, inv, indent=2)
 
 cap.release
