@@ -37,6 +37,7 @@ match_idx = 0
 state = SCAN
 img_card = None
 inventory = list()
+foil = False
 
 cv2.namedWindow('camera')
 cv2.moveWindow('camera', 80, 0)
@@ -51,6 +52,7 @@ while True:
         if state == SCAN:
             state = SELECT
             match_idx = 0
+            foil = False
 
     if state == SCAN:
         ret, frame = cap.read()
@@ -118,6 +120,17 @@ while True:
                     2,
                     cv2.LINE_AA)
 
+        if foil:
+            cv2.putText(img_composite_border,
+                        'FOIL',
+                        (50, height_screen - 170),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        2,
+                        (255, 255, 255, 255),
+                        2,
+                        cv2.LINE_AA)
+
+
         cv2.imshow('camera', img_composite_border)
 
         key = cv2.waitKey(0)
@@ -131,18 +144,28 @@ while True:
             if match_idx < 0:
                 match_idx = 0
 
-        elif key & 0xFF == ord('x'):
+        elif key & 0xFF == ord('f'):
+            foil = not foil
+
+        elif key & 0xFF == ord('x') or key & 0xFF == ord('s'):
             # Cancel and go back to scanning
             state = SCAN
 
         elif key & 0xFF == ord(' '):
             # Select this card and go back to normal.
             data = cl.lookup(match[0])
-            print(data)
-            inventory.append({
+            entry = {
                 'id': data['id'],
                 'name': data['name']
-            })
+            }
+
+            if foil:
+                entry['foil'] = True
+                print('(foil) {}'.format(data['name']))
+            else:
+                print(data['name'])
+
+            inventory.append(entry)
             state = SCAN
 
 if len(inventory) > 0:
