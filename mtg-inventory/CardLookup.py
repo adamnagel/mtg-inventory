@@ -2,7 +2,7 @@ import pickle
 from os.path import join, exists, dirname
 import json
 
-with open('config.json') as f:
+with open(join(dirname(__file__), 'config.json')) as f:
     config = json.load(f)
 path_db_root = config['path_db_root']
 

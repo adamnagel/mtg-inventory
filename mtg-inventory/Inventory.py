@@ -38,6 +38,7 @@ state = SCAN
 img_card = None
 inventory = list()
 foil = False
+proxy = False
 
 cv2.namedWindow('camera')
 cv2.moveWindow('camera', 80, 0)
@@ -53,6 +54,7 @@ while True:
             state = SELECT
             match_idx = 0
             foil = False
+            proxy = False
 
     if state == SCAN:
         ret, frame = cap.read()
@@ -130,6 +132,15 @@ while True:
                         2,
                         cv2.LINE_AA)
 
+        if proxy:
+            cv2.putText(img_composite_border,
+                        'PROXY',
+                        (250, height_screen - 170),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        2,
+                        (255, 255, 255, 255),
+                        2,
+                        cv2.LINE_AA)
 
         cv2.imshow('camera', img_composite_border)
 
@@ -147,6 +158,9 @@ while True:
         elif key & 0xFF == ord('f'):
             foil = not foil
 
+        elif key & 0xFF == ord('g'):
+            proxy = not proxy
+
         elif key & 0xFF == ord('x') or key & 0xFF == ord('s'):
             # Cancel and go back to scanning
             state = SCAN
@@ -162,6 +176,9 @@ while True:
             if foil:
                 entry['foil'] = True
                 print('(foil) {}'.format(data['name']))
+            elif proxy:
+                entry['proxy'] = True
+                print('[proxy] {}'.format(data['name']))
             else:
                 print(data['name'])
 
